@@ -22,11 +22,10 @@ public class RequestReply {
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestReply.class);
 
     private static final String CONNECTION_FACTORY = "ConnectionFactory";
-    private static final String QUEUE_REQUEST = "queue/samples.messaging.queue.request";
-    private static final String QUEUE_REPLY = "queue/samples.messaging.queue.reply";
+    private static final String QUEUE = "queue/samples.messaging.queue";
 
     private Destination requestQueue;
-    private Destination replyQueue;
+    private Destination temporaryQueue;
 
     private Connection connection;
     private Session session;
@@ -35,13 +34,13 @@ public class RequestReply {
 
     public RequestReply() throws Exception {
         InitialContext context = new InitialContext();
-        requestQueue = (Destination) context.lookup(QUEUE_REQUEST);
-        replyQueue = (Destination) context.lookup(QUEUE_REPLY);
+        requestQueue = (Destination) context.lookup(QUEUE);
 
         ConnectionFactory factory = (ConnectionFactory) context.lookup(CONNECTION_FACTORY);
         connection = factory.createConnection();
         session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        requester = session.createConsumer(replyQueue);
+        temporaryQueue = session.createTemporaryQueue();
+        requester = session.createConsumer(temporaryQueue);
         requester.setMessageListener(new Requester());
         replier = session.createConsumer(requestQueue);
         replier.setMessageListener(new Replier());
@@ -50,7 +49,7 @@ public class RequestReply {
 
     public void send(String request) throws JMSException {
         Message message = session.createTextMessage(request);
-        message.setJMSReplyTo(replyQueue);
+        message.setJMSReplyTo(temporaryQueue);
         send(requestQueue, message);
     }
 

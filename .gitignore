@@ -1,5 +1,6 @@
 .*
-!.gitignore
+!/.gitignore
+!/.travis.yml
 bin/
 build/
 target/

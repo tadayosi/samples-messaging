@@ -1,0 +1,2 @@
+include "queue", "queue-request-reply", "temp-queue"
+rootProject.children.each { it.name = rootProject.name + "-" + it.name }
